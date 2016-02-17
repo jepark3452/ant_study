@@ -1,0 +1,84 @@
+<project name="ant_web_build_practice" default="dist" basedir=".">
+	<description>ant_web_build_practice Test</description>
+	<property file="${basedir}/build.properties" />
+	
+	<property name="app.name" value="${app.name}" />
+	<property name="app.path" value="/${app.name}" />
+	<property name="app.version" value="${app.version}" />
+	<property name="build.home" value="${basedir}/build" />
+	<property name="dist.home" value="${basedir}/dist" />
+	<property name="docs.home" value="${basedir}/docs" />
+	<property name="src.home" value="${basedir}/src" />
+	<property name="web.home" value="${basedir}/WebContent" />
+	
+	<path id="compile.classpath">
+		<fileset dir="${web.home}/WEB-INF/lib">
+			<include name="*.jar"/>
+		</fileset>
+	</path>
+	
+	<target name="clean"
+				description="Delete old build and dist directories">
+		<delete dir="${build.home}" />
+		<delete dir="${dist.home}" />
+	</target>
+	
+	<target name="prepare" depends="clean">
+		<mkdir dir="${build.home}" />
+		<mkdir dir="${build.home}/WEB-INF" />
+		<mkdir dir="${build.home}/WEB-INF/classes" />
+		<mkdir dir="${build.home}/WEB-INF/lib" />
+		
+		<copy todir="${build.home}">
+			<fileset dir="${web.home}">
+				<include name="**/*.jsp"/>			
+				<include name="**/*.css"/>
+				<include name="**/*.html"/>
+				<include name="**/*.js"/>
+				<include name="**/*.jpg"/>
+				<include name="**/*.gif" />
+				<include name="**/*.swf" />
+				<include name="**/*.xml" />
+				<include name="**/*.tld" />
+				<include name="**/*.jar" />
+			</fileset>
+		</copy>
+	</target>
+	
+	<target name="compile" depends="prepare" 
+				description="Compile Java Source" >
+		
+		<!-- Compile Java classes as necessary -->
+		<javac srcdir="${src.home}"
+				destdir="${build.home}/WEB-INF/classes">
+			<classpath refid="compile.classpath" />
+		</javac>
+		
+		<!-- Copy application resources -->
+		<copy todir="${build.home}/WEB-INF/classes">
+			<fileset dir="${src.home}" excludes="**/*.java" />
+		</copy>
+	</target>
+	
+	<target name="javadoc" depends="compile"
+	    description="Create Javadoc API documentation">
+	     <mkdir dir="${dist.home}/docs/api"/>
+	     <javadoc sourcepath="${src.home}"
+	                  destdir="${dist.home}/docs/api"
+	                   packagenames="*">
+	       <classpath refid="compile.classpath"/>
+	     </javadoc>
+	   </target>
+	 
+	 <target name="dist" depends="compile,javadoc"
+	   description="Create binary distribution">
+	    <mkdir dir="${dist.home}/docs"/>
+	    <copy  todir="${dist.home}/docs">
+	      <fileset dir="${docs.home}"/>
+	    </copy>
+	 
+	    <jar jarfile="${dist.home}/${app.name}-${app.version}.war"
+	         basedir="${build.home}"/>
+	  </target>
+	
+</project>
